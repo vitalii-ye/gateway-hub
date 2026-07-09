@@ -1,0 +1,26 @@
+[project]
+name = "rules-engine"
+version = "0.1.0"
+description = "RabbitMQ worker that evaluates rules and dispatches actions"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aio-pika>=9.4.4",
+    "httpx>=0.28.1",
+    "pydantic>=2.13.4",
+    "python-dotenv>=1.2.2",
+    "redis>=5.0.4",
+    "supabase>=2.31.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.25.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", ".."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

@@ -1,0 +1,68 @@
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    env_file:
+      - ./.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
+  rules-engine:
+    build:
+      context: .
+      dockerfile: rules-engine/Dockerfile
+    env_file:
+      - ./.env
+    depends_on:
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      discord-bot:
+        condition: service_started
+
+  discord-bot:
+    build:
+      context: .
+      dockerfile: discord-bot/Dockerfile
+    env_file:
+      - ./.env
+    ports:
+      - "8001:8001"
+
+  control-page:
+    build:
+      context: .
+      dockerfile: control-page/Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_GATEWAY_URL: ${NEXT_PUBLIC_GATEWAY_URL}
+        NEXT_PUBLIC_DISCORD_CLIENT_ID: ${NEXT_PUBLIC_DISCORD_CLIENT_ID}
+    ports:
+      - "3000:3000"
+    depends_on:
+      gateway:
+        condition: service_started
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
